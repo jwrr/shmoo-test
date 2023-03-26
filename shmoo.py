@@ -16,9 +16,11 @@ def sweeprange(rangelist):
   if done:
     seq.append(first)
   current = first
+  cnt = 0
   while not done:
     seq.append(current)
-    current = current + step
+    cnt += 1
+    current = first + cnt*step
     done = (step > 0) and (current > last) or (step < 0) and (current < last)
   return seq
 
