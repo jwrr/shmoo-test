@@ -66,6 +66,20 @@ def tohexint(s):
     return s
 
 
+def settype(untypedlist):
+  typedlist = []
+  numparts = len(untypedlist)
+  if allints(untypedlist):
+    typedlist.extend( [toint(s) for s in untypedlist] )
+  elif allfloats(untypedlist):
+    typedlist.extend( [tofloat(s) for s in untypedlist] )
+  elif allhexs(untypedlist):
+    typedlist.extend( [tohexint(s) for s in untypedlist] )
+  else:
+    typedlist.append(untypedlist[0])
+  return typedlist
+
+
 def istrue(s):
   return s.lower() in ['true', 'on', 'yes', 'y']
 
@@ -165,7 +179,7 @@ def abort(s='', err=1):
 
 def getorquit(d,k):
   if k not in d:
-    utils.abort(f"'{k}' not defined")
+    abort(f"'{k}' not defined")
   return d[k]
 
 

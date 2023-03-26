@@ -9,38 +9,40 @@ from decimal import *
 import utils
 
 
-def expandrange(rstr):
-  vparts = utils.stripall(rstr.split(':',2))
-  numvparts = len(vparts)
-  first = vparts[0]
-  r = [0]
-  if numvparts == 2:
-    vparts[2] = 1
-  if utils.allints(vparts):
-    r.extend( [utils.toint(s) for s in vparts] )
-  elif utils.allfloats(vparts):
-    r.extend( [utils.tofloat(s) for s in vparts] )
-  elif utils.allhexs(vparts):
-    r.extend( [utils.tohexint(s) for s in vparts] )
-  else:
-    r.append(rstr)
-  rlen = len(r)
-  r[0] = r[1]      # current = first
-  if rlen == 2:
-    r.append(r[1]) # last = first
-    r.append(0)    # step = 0
-  elif rlen == 3:
-    r.append(1)    # step = 1
-  
-  current, first, last, step = r
-  seq = [current]
+def sweeprange(rangelist):
+  first, last, step = rangelist
+  seq = []
   done = (step == 0)
   if done:
     seq.append(first)
+  current = first
   while not done:
     seq.append(current)
     current = current + step
     done = (step > 0) and (current > last) or (step < 0) and (current < last)
+  return seq
+
+
+def expandrange(rstr):
+  parts = utils.stripall(rstr.split(':',2))
+  rangelist = utils.settype(parts)
+  rlen = len(rangelist)
+  if rlen == 1:
+    rangelist.append(rangelist[0]) # last = first
+    rangelist.append(0)    # step = 0
+  elif rlen == 2:
+    rangelist.append(1)    # step = 1
+  seq = sweeprange(rangelist)
+  return seq
+
+def expandlist(lstr):
+  parts = utils.stripall(lstr.split(',',2))
+  seq = [0] # first item will be used as 'current' value
+  for rstr in parts:
+    rseq = expandrange(rstr)
+    seq.extend(rseq)
+  if len(seq) > 1:
+    seq[0] = seq[1]
   return seq
 
 
@@ -54,10 +56,10 @@ def parse(args):
     parts = arg.split('=',1)
     numparts = len(parts)
     k = parts[0].strip()
-    cfg[k] = []
-    v = 'True' if numparts == 1 else parts[1].strip()
-    seq = expandrange(v)
-    cfg[k].extend(seq)
+    v = parts[1].strip() if len(parts) > 1 else 'True'
+    seq = expandlist(v)
+#   seq = expandrange(v)
+    cfg[k] = seq
   return cfg
 
 
@@ -87,6 +89,7 @@ def run(cfg, depth=0, cnt=0):
     currcfg = getcurrent(cfg)
     s = f'# {cnt}: ' + utils.strkv(currcfg, '', ',', dict(template=1))
     print(s)
+    utils.dbg(s)
     template = utils.replacewithkv(currcfg['template'], currcfg, '{', '}')
     print(template)
     print('')
@@ -105,12 +108,11 @@ def getcurrent(cfg):
   return curr
 
 
-# ==============================================================
-# ==============================================================
+def main():
+  cfg = setup()
+  s = utils.strkv(cfg, '', '\n', {}, 1)
+  utils.dbg(s)
+  cnt = run(cfg)
 
 
-cfg = setup()
-s = utils.strkv(cfg, '', '\n', {}, 1)
-utils.dbg(s)
-cnt = run(cfg)
-
+main()
