@@ -4,6 +4,7 @@
 import sys
 import re
 
+
 def isint(s):
   try:
     int(s)
@@ -11,12 +12,14 @@ def isint(s):
     return False
   return True
 
+
 def isfloat(s):
   try:
     float(s)
   except ValueError:
     return False
   return True
+
 
 def ishex(s):
   s = s.lower()
@@ -29,11 +32,25 @@ def ishex(s):
     return False
   return True
 
+
+def allints(l):
+  return all(isint(s) for s in l)
+
+
+def allfloats(l):
+  return all(isfloat(s) for s in l)
+
+
+def allhexs(l):
+  return all(ishex(s) for s in l)
+
+
 def tofloat(s):
   try:
     return float(s)
   except ValueError:
     return s
+
 
 def toint(s):
   try:
@@ -41,23 +58,29 @@ def toint(s):
   except ValueError:
     return s
 
+
 def tohexint(s):
   try:
     return int(s, 16)
   except ValueError:
     return s
 
+
 def istrue(s):
   return s.lower() in ['true', 'on', 'yes', 'y']
+
 
 def isfalse(s):
   return s.lower() in ['false', 'off', 'no', 'n']
 
+
 def isbool(s):
   return istrue(s) or isfalse(s)
 
+
 def tobool(s):
   return istrue(s)
+
 
 def slurplines(filename):
   lines = []
@@ -65,11 +88,14 @@ def slurplines(filename):
     lines = f.read().splitlines()
   return lines
 
+
 def removecomments(lines, commentstart='#'):
   return [re.sub(commentstart + '.*', '', s) for s in lines]
 
+
 def removeblanks(lines):
   return list(filter(None, lines))
+
 
 def combinelines(lines, marker="'''"):
   olines = []
@@ -90,12 +116,14 @@ def combinelines(lines, marker="'''"):
       oline = ''
   return olines
 
+
 def longestkey(d):
   klen = 0
   for k,v in d.items():
     if len(k) > klen:
       klen = len(k)
   return klen
+
 
 def strkv(d, name = '', sep='\n', skip={}):
   klen = longestkey(d) + len(name) + 2
@@ -112,6 +140,7 @@ def strkv(d, name = '', sep='\n', skip={}):
       printlist.append(s)
   return sep.join(printlist)
 
+
 def replacewithkv(s, d, pre='', post=''):
   for k,v in d.items():
     fromstr = pre + str(k)  + post
@@ -119,20 +148,25 @@ def replacewithkv(s, d, pre='', post=''):
     s = s.replace(fromstr, tostr)
   return s
 
+
 def stripall(lines):
   return [s.strip() for s in lines]
+
 
 def abort(s='', err=1):
   print(f'Error {err}: {s}', file=sys.stderr)
   sys.exit(err)
+
 
 def getorquit(d,k):
   if k not in d:
     utils.abort(f"'{k}' not defined")
   return d[k]
 
+
 def first(od):
   return next(iter(od.items()))
+
 
 def get_nth(od, n):
   if n > len(od)-1:
