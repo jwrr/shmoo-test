@@ -81,7 +81,8 @@ def setup():
 
 
 def run(cfg, depth=0, cnt=0):
-  if depth >= len(cfg)-1:
+  done = depth >= len(cfg)-1
+  if done:
     cnt += 1
     currcfg = getcurrent(cfg)
     s = f'# {cnt}: ' + utils.strkv(currcfg, '', ',', dict(template=1))
@@ -91,13 +92,9 @@ def run(cfg, depth=0, cnt=0):
     print('')
     return cnt
   k,v = utils.get_nth(cfg, depth)
-  # print(f'dbg {depth}: key={k}, value={v}')
-  if len(v) == 1:
+  for current in v[1:]:
+    cfg[k][0] = current
     cnt = run(cfg, depth+1, cnt)
-  else:
-    for current in v[1:]:
-      cfg[k][0] = current
-      cnt = run(cfg, depth+1, cnt)
   return cnt
 
 
@@ -113,17 +110,7 @@ def getcurrent(cfg):
 
 
 cfg = setup()
-print(cfg)
-currcfg = getcurrent(cfg)
-print(currcfg)
-
-# print( utils.strkv(currcfg, 'cfg', '\n', {'template':1}) )
-# template = utils.getorquit(currcfg, 'template')
-# print("============================")
-# print(template)
-# template = utils.replacewithkv(template, currcfg, '{', '}')
-# print("============================")
-# print(template)
-
+s = utils.strkv(cfg, '', '\n', {}, 1)
+utils.dbg(s)
 cnt = run(cfg)
 

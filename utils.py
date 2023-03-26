@@ -125,10 +125,12 @@ def longestkey(d):
   return klen
 
 
-def strkv(d, name = '', sep='\n', skip={}):
+def strkv(d, name = '', sep='\n', skip={}, firstcol=0):
   klen = longestkey(d) + len(name) + 2
   printlist = []
   for k,v in d.items():
+    if type(v) == list and firstcol>0:
+      v = v[firstcol:]
     if k not in skip:
       if name != '':
         k = f'{name}[{k}]'
@@ -153,8 +155,11 @@ def stripall(lines):
   return [s.strip() for s in lines]
 
 
+def dbg(s):
+  print(s, file=sys.stderr)
+
 def abort(s='', err=1):
-  print(f'Error {err}: {s}', file=sys.stderr)
+  dbg(f'Error {err}: {s}', file=sys.stderr)
   sys.exit(err)
 
 
