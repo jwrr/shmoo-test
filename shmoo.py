@@ -5,6 +5,7 @@
 import sys
 import re
 from collections import OrderedDict
+from decimal import *
 import utils
 
 
@@ -30,7 +31,17 @@ def expandrange(rstr):
     r.append(0)    # step = 0
   elif rlen == 3:
     r.append(1)    # step = 1
-  return r
+  
+  current, first, last, step = r
+  seq = [current]
+  done = (step == 0)
+  if done:
+    seq.append(first)
+  while not done:
+    seq.append(current)
+    current = current + step
+    done = (step > 0) and (current > last) or (step < 0) and (current < last)
+  return seq
 
 
 # arg=99,0.1:0.9:0.2,1:9:2,10:90:20
@@ -44,15 +55,9 @@ def parse(args):
     numparts = len(parts)
     k = parts[0].strip()
     cfg[k] = []
-    if numparts == 1:
-      cfg[k].append(True)
-      cfg[k].append(True)
-      cfg[k].append(True)
-      cfg[k].append(True)
-    else:
-      v = parts[1].strip()
-      r = expandrange(v)
-      cfg[k].extend(r)
+    v = 'True' if numparts == 1 else parts[1].strip()
+    seq = expandrange(v)
+    cfg[k].extend(seq)
   return cfg
 
 
@@ -75,28 +80,24 @@ def setup():
   return cfg
 
 
-def recurse(cfg, depth=0, cnt=0):
+def run(cfg, depth=0, cnt=0):
   if depth >= len(cfg)-1:
     cnt += 1
     currcfg = getcurrent(cfg)
-    s = f'\n# {cnt}: ' + utils.strkv(currcfg, '', ',', dict(template=1))
+    s = f'# {cnt}: ' + utils.strkv(currcfg, '', ',', dict(template=1))
     print(s)
     template = utils.replacewithkv(currcfg['template'], currcfg, '{', '}')
     print(template)
+    print('')
     return cnt
   k,v = utils.get_nth(cfg, depth)
-  print(f'dbg {depth}: key={k}, value={v}')
-  current, first, last, step = v
-  if step == 0:
-    cnt = recurse(cfg, depth+1, cnt)
+  # print(f'dbg {depth}: key={k}, value={v}')
+  if len(v) == 1:
+    cnt = run(cfg, depth+1, cnt)
   else:
-    current = first
-    cfg[k][0] = current
-    epsilon = 0.00001
-    while current <= last+epsilon:
-      cnt = recurse(cfg, depth+1, cnt)
-      current += step
+    for current in v[1:]:
       cfg[k][0] = current
+      cnt = run(cfg, depth+1, cnt)
   return cnt
 
 
@@ -124,5 +125,5 @@ print(currcfg)
 # print("============================")
 # print(template)
 
-cnt = recurse(cfg)
+cnt = run(cfg)
 
