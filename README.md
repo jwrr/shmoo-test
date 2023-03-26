@@ -62,7 +62,7 @@ python3 shmoo.py t=-2:0:2,18:22:2,78:82:2
 The Template
 -------------
 
-The template contains your commands that the parameters is inserted into. The template
+The template contains your commands that your parameters are inserted into. The template
 can be defined with the command line parameter `template` such as:
 
 ```bash
@@ -78,9 +78,8 @@ Configuration File
 ------------------
 
 The configuration file is optional and contains default values for the
-parameters. The default file name is `schmoo.cfg`, and can be redefined on the
-on the command line with the `cfg=xyz.txt` parameter. Here is an example config
-file.
+parameters. The default file name is `schmoo.cfg`, and can be redefined on the 
+command line with the `cfg=xyz.txt` parameter. Here is an example config file.
 
 ```bash
 # shmoo config file
@@ -91,6 +90,7 @@ t=20
 f1=100
 f2=100
 
+# The triple-quote can be used for multi-line commands
 template = '''
 run_test {p} {v} {t} {f1} {f2}
 cp results.txt to {name}_{p}_{v}_{t}_{f1}_{f2}.txt
