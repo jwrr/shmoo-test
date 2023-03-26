@@ -5,7 +5,6 @@
 import sys
 import re
 from collections import OrderedDict
-
 import utils
 
 def parse(args):
@@ -15,8 +14,9 @@ def parse(args):
     parts = arg.split('=',1)
     numparts = len(parts)
     k = parts[0].strip()
+    cfg[k] = [0]
     if numparts == 1:
-      cfg[k] = True
+      cfg[k].append(True)
     else:
       v = parts[1].strip()
       vparts = utils.stripall(v.split(':',2))
@@ -24,25 +24,21 @@ def parse(args):
       first = vparts[0]
       if numvparts == 2:
         vparts[2] = 1
-      if numvparts == 3:
-        if utils.isint(first):
-          cfg[k] = [utils.toint(s) for s in vparts]
-        elif utils.isfloat(first):
-          cfg[k] = [utils.tofloat(s) for s in vparts]
-        elif utils.ishex(first):
-          cfg[k] = [utils.tohexint(s) for s in vparts]
-        else:
-          cfg[k] = v
+      if utils.isint(first):
+        cfg[k].extend( [utils.toint(s) for s in vparts] )
+      elif utils.isfloat(first):
+        cfg[k].extend( [utils.tofloat(s) for s in vparts] )
+      elif utils.ishex(first):
+        cfg[k].extend( [utils.tohexint(s) for s in vparts] )
       else:
-        s = first
-        if utils.isint(first):
-          cfg[k] = utils.toint(s)
-        elif utils.isfloat(first):
-          cfg[k] = utils.tofloat(s)
-        elif utils.ishex(first):
-          cfg[k] = utils.tohexint(s)
-        else:
-          cfg[k] = v
+        cfg[k].append( v )
+    clen = len(cfg[k])
+    cfg[k][0] = cfg[k][1]      # current = first
+    if clen == 2:
+      cfg[k].append(cfg[k][1]) # last = first
+      cfg[k].append(0)         # step = 0
+    if clen == 3:
+      cfg[k].append(1)         # step = 1
   return cfg
 
 def readcfg(filename):
@@ -62,54 +58,50 @@ def setup():
   cfg.update(args)
   return cfg
 
-def recurse(template, cfg, i=0, cnt=0):
-  k,v = utils.get_nth(cfg, i)
-
-  print(f'dbg {i}: key={k}, value={v}')
-  
-  if type(v) == list:
-    first, last, step = v
+def recurse(cfg, depth=0, cnt=0):
+  if depth >= len(cfg)-1:
+    cnt += 1
+    currcfg = getcurrent(cfg)
+    s = f'\n# {cnt}: ' + utils.strkv(currcfg, '', ',', dict(template=1))
+    print(s)
+    template = utils.replacewithkv(currcfg['template'], currcfg, '{', '}')
+    print(template)
+    return cnt
+  k,v = utils.get_nth(cfg, depth)
+  # print(f'dbg {depth}: key={k}, value={v}')
+  current, first, last, step = v
+  if step == 0:
+    cnt = recurse(cfg, depth+1, cnt)
+  else:
     current = first
+    cfg[k][0] = current
     epsilon = 0.00001
     while current <= last+epsilon:
-#     print(f'dbg first={first}, last={last}, incr={step}')
-      cfg[k] = current
-      if i < len(cfg)-1:
-        cnt = recurse(template, cfg, i+1, cnt)
-      else:
-        print("dbg DONE1!!!!!!")
-        utils.printkv(cfg, '', ',')
-        cnt += 1
+      cnt = recurse(cfg, depth+1, cnt)
       current += step
-    return cnt
-  else:
-#     print(f'dbg constant={const}')
-    if i < len(cfg)-1:
-      cnt = recurse(template, cfg, i+1, cnt)
-    else:
-      print("dbg DONE2!!!!!!")
-      utils.printkv(cfg, '', ',')
-      cnt += 1
-      return cnt
+      cfg[k][0] = current
   return cnt
 
+
+def getcurrent(cfg):
+  curr = {}
+  for k in cfg:
+    curr[k] = cfg[k][0]
+  return curr
 
 # ==============================================================
 # ==============================================================
 
 cfg = setup()
-utils.printkv(cfg, 'cfg', '\n')
+currcfg = getcurrent(cfg)
 
-template = utils.getorquit(cfg, 'template')
-print("============================")
-print(template)
-template = utils.replacewithkv(template, cfg, '{', '}')
-print("============================")
-print(template)
+# print( utils.strkv(currcfg, 'cfg', '\n', {'template':1}) )
+# template = utils.getorquit(currcfg, 'template')
+# print("============================")
+# print(template)
+# template = utils.replacewithkv(template, currcfg, '{', '}')
+# print("============================")
+# print(template)
 
-i = 0
-
-cnt = recurse(template, cfg)
-
-print(f'{cnt} test conditions created')
+cnt = recurse(cfg)
 

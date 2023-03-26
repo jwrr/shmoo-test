@@ -97,19 +97,20 @@ def longestkey(d):
       klen = len(k)
   return klen
 
-def printkv(d, name = '', sep='\n'):
+def strkv(d, name = '', sep='\n', skip={}):
   klen = longestkey(d) + len(name) + 2
   printlist = []
   for k,v in d.items():
-    if name != '':
-      k = f'{name}[{k}]'
-    if sep == '\n':
-      k = k.ljust(klen)
-      s = f'{k} = {v}'
-    else:
-      s = f'{k}={v}'
-    printlist.append(s)
-  print(sep.join(printlist))
+    if k not in skip:
+      if name != '':
+        k = f'{name}[{k}]'
+      if sep == '\n':
+        k = k.ljust(klen)
+        s = f'{k} = {v}'
+      else:
+        s = f'{k}={v}'
+      printlist.append(s)
+  return sep.join(printlist)
 
 def replacewithkv(s, d, pre='', post=''):
   for k,v in d.items():
