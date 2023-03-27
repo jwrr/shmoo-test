@@ -4,9 +4,14 @@
 
 import sys
 import re
+import random
 from collections import OrderedDict
-from decimal import *
 import utils
+
+
+def fakegaussian(first, last, cnt=2):
+  centrallimit = sum( [random.uniform(first, last) for i in range(cnt)] ) / cnt
+  return centrallimit
 
 
 def sweeprange(rangelist):
@@ -25,17 +30,49 @@ def sweeprange(rangelist):
   return seq
 
 
+def distrange(dist, rangelist):
+  dist = dist.lower()
+  first, last, cnt = rangelist
+  scale = utils.getmaxscale([first, last])
+  seq = []
+  if dist == 'lin':
+    m = (last - first) / (cnt-1)
+    b = first
+    for x in range(cnt):
+      seq.append( round(m*x + b, scale) )
+  elif dist == 'log':
+    y = last / first
+    nthroot = cnt-1
+    b = y**(1/nthroot)
+    a = first
+    for x in range(int(cnt)):
+      seq.append( round(a*b**x, scale) )
+  elif dist == 'rand':
+    random.seed()
+    for x in range(int(cnt)):
+      seq.append( round(random.uniform(first, last), scale) )
+  elif dist == 'norm':
+    random.seed()
+    for x in range(int(cnt)):
+      seq.append( round(fakegaussian(first, last), scale) )
+  return seq
+
+
 def expandrange(rstr):
-  parts = utils.stripall(rstr.split(':',2))
+  distributions = dict(lin=1, log=2, rand=3, norm=4, bin=5)
+  parts = utils.stripall(rstr.split(':'))
+  isdist = parts[0].lower() in distributions.keys()
+  dist = parts.pop(0) if isdist else ''
   rangelist = utils.settype(parts)
   rlen = len(rangelist)
   if rlen == 1:
     rangelist.append(rangelist[0]) # last = first
-    rangelist.append(0)    # step = 0
+    rangelist.append(0)    # step or cnt = 0
   elif rlen == 2:
-    rangelist.append(1)    # step = 1
-  seq = sweeprange(rangelist)
+    rangelist.append(1)    # step or cnt = 1
+  seq = distrange(dist, rangelist) if isdist else  sweeprange(rangelist)
   return seq
+
 
 def expandlist(lstr):
   parts = utils.stripall(lstr.split(',',2))

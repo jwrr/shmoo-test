@@ -38,6 +38,21 @@ separated list or colon separated range.
 ./shmoo.py tech=28lp,28hp p=tt,ss,ff t=0:100:10 v=1.0:1.35:0.05 f1=100 f2=200
 ```
 
+Here are some more parameter examples.
+
+```bash
+a=5 # constant
+b=10:20 # range with step size of 1
+c=100:1000:100 # range with step size of 100
+d=[LIN,LOG,RAND,GAUSSIAN,BINO]:1:1000:50
+e=LIN:1:1000:50   # linear slope with 50 values
+f=LOG:1:1000:50   # exponential slope
+g=RAND:1:1000:50  # uniform random distribution
+h=NORM:1:1000:50  # guassian distribution
+i=BINO:10:20:50   # binomial distribution (tbd)
+```
+
+
 In the above example the `f1` and `f2` parameters are set to constants 100 and 
 200, respectively. The `p` parameter uses list notation to define a list of 
 three values, `tt`, ` ss` and `ff`, which could represent typical, slow and 

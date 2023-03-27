@@ -111,6 +111,25 @@ def removeblanks(lines):
   return list(filter(None, lines))
 
 
+def getscale(v):
+  s = str(v)
+  parts = s.split('.', 1)
+  if len(parts) > 1:
+    return(len(parts[1]))
+  return 0
+
+
+def getscales(l):
+  scales = []
+  for v in l:
+    scales.append(getscale(v))
+  return scales
+
+
+def getmaxscale(l):
+  return max( getscales(l) )
+
+
 def combinelines(lines, marker="'''"):
   olines = []
   combine = False
